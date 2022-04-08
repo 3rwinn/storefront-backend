@@ -6,6 +6,13 @@ const pepper = process.env.BCRYPT_PASSWORD;
 
 export type User = {
   id?: number;
+  firstname: string;
+  lastname: string;
+  username: string;
+  password: string;
+};
+
+export type UserAuth = {
   username: string;
   password: string;
 };
@@ -48,19 +55,26 @@ export class UserStore {
       // @ts-ignore
       const conn = await client.connect();
       const sql =
-        "INSERT INTO users (username, password_digest) VALUES($1, $2) RETURNING *";
+        "INSERT INTO users (firstname, lastname, username, password_digest) VALUES($1, $2, $3, $4) RETURNING *";
 
       // @ts-ignore
       const hash = bcrypt.hashSync(u.password + pepper, parseInt(saltRounds));
 
-      const result = await conn.query(sql, [u.username, hash]);
+      const result = await conn.query(sql, [
+        u.firstname,
+        u.lastname,
+        u.username,
+        hash,
+      ]);
       const user = result.rows[0];
 
       conn.release();
 
       return user;
     } catch (err) {
-      throw new Error(`unable create user (${u.username}): ${err}`);
+      throw new Error(
+        `unable create user (${u.firstname} ${u.lastname}): ${err}`
+      );
     }
   }
 
@@ -81,16 +95,15 @@ export class UserStore {
 
   async authenticate(username: string, password: string): Promise<User | null> {
     const conn = await client.connect();
-    const sql = "SELECT password_digest FROM users WHERE username=($1)";
+    const sql =
+      "SELECT username, password_digest FROM users WHERE username=($1)";
 
     const result = await conn.query(sql, [username]);
-
-    // console.log(password + pepper);
 
     if (result.rows.length > 0) {
       const user = result.rows[0];
 
-      console.log(user);
+      // console.log("rr", user);
 
       if (bcrypt.compareSync(password + pepper, user.password_digest)) {
         return user;
