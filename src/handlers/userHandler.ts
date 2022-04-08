@@ -6,13 +6,14 @@ dotenv.config();
 
 const { TOKEN_SECRET } = process.env;
 
-import { User, UserStore } from "../models/user";
+import { User, UserAuth, UserStore } from "../models/user";
+import { abort, verifyAuthToken } from "../helpers";
 
 const userRoutes = (app: express.Application) => {
-  app.get("/users", index);
-  app.get("/users/:id", show);
   app.post("/users", create);
-  app.delete("/users/:id", destroy);
+  app.get("/users", verifyAuthToken, index);
+  app.get("/users/:id", verifyAuthToken, show);
+  app.delete("/users/:id", verifyAuthToken, destroy);
   app.post("/users/authenticate", authenticate);
 };
 
@@ -20,17 +21,26 @@ const store = new UserStore();
 
 const index = async (_req: Request, res: Response) => {
   const users = await store.index();
-  res.json(users);
+  res.json({
+    success: true,
+    users,
+  });
 };
 
 const show = async (_req: Request, res: Response) => {
-  const id = Number(_req.params.id);
+  const id = parseInt(_req.params.id);
   const user = await store.show(id);
-  res.json(user);
+  if (user) {
+    res.json({ success: true, user });
+  } else {
+    abort(res, 404, "User not found");
+  }
 };
 
 const create = async (_req: Request, res: Response) => {
   const user: User = {
+    firstname: _req.body.firstname,
+    lastname: _req.body.lastname,
     username: _req.body.username,
     password: _req.body.password,
   };
@@ -38,32 +48,37 @@ const create = async (_req: Request, res: Response) => {
     const newUser = await store.create(user);
     // @ts-ignore
     var token = jwt.sign({ user: newUser }, TOKEN_SECRET);
-    res.json(token);
+    res.json({
+      success: true,
+      token: token,
+    });
   } catch (err) {
-    res.status(400);
-    res.json(err);
+    abort(res, 400, err as unknown as string);
   }
 };
 
 const destroy = async (_req: Request, res: Response) => {
-  const id = Number(_req.params.id);
+  const id = parseFloat(_req.params.id);
   const deleted = await store.delete(id);
-  res.json(deleted);
+  if (deleted) {
+    res.json({
+      success: true,
+      deleted,
+    });
+  } else {
+    abort(res, 404, "User not found");
+  }
 };
 
 const authenticate = async (_req: Request, res: Response) => {
-  const user: User = {
+  const user: UserAuth = {
     username: _req.body.username,
     password: _req.body.password,
   };
   try {
     const u = await store.authenticate(user.username, user.password);
     if (u === null) {
-      res.status(401);
-      res.json({
-        success: false,
-        message: "Invalid credentials",
-      });
+      abort(res, 401, "Invalid credentials");
     }
     // @ts-ignore
     var token = jwt.sign({ user: u }, TOKEN_SECRET);
@@ -72,8 +87,7 @@ const authenticate = async (_req: Request, res: Response) => {
       token: token,
     });
   } catch (err) {
-    res.status(401);
-    res.json(err);
+    abort(res, 400, err as unknown as string);
   }
 };
 
