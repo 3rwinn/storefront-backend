@@ -5,38 +5,44 @@ These are the notes from a meeting with the frontend developer that describe wha
 
 ## API Endpoints
 #### Products
-- Index 
-- Show
-- Create [token required]
-- [OPTIONAL] Top 5 most popular products 
-- [OPTIONAL] Products by category (args: product category)
+- Index /products [GET]
+- Show /products/:id [GET]
+- Create /products [POST] [token required]
 
+ 
 #### Users
-- Index [token required]
-- Show [token required]
-- Create N[token required]
+- Index /users [GET] [token required]
+- Show /users/:id [GET] [token required]
+- Create /users [POST] [token required]
 
 #### Orders
-- Current Order by user (args: user id)[token required]
-- [OPTIONAL] Completed Orders by user (args: user id)[token required]
+- Index `/orders` [GET] [token required]
+- Show `/orders/:id` [GET] [token required]
+- Create `/orders` [POST] [token required]
+- Update `/orders/:id` [PUT] [token required]
+- Delete `/orders/:id` [DELETE] [token required]
+- Add product on orders `/orders/:id/products` [POST] [token required]
+- Current Order by user `/orders/users/:id` [GET] [token required]
 
-## Data Shapes
-#### Product
--  id
-- name
-- price
-- [OPTIONAL] category
+## Database Schema
+#### Product table
+- id `SERIAL PRIMARY KEY`
+- name `VARCHAR`
+- price `INTEGER`
 
-#### User
-- id
-- firstName
-- lastName
-- password
+#### User table
+- id `SERIAL PRIMARY KEY`
+- firstName `VARCHAR`
+- lastName `VARCHAR`
+- password `VARCHAR`
 
-#### Orders
-- id
-- id of each product in the order
-- quantity of each product in the order
-- user_id
-- status of order (active or complete)
+#### Orders table
+- id `SERIAL PRIMARY KEY`
+- user_id `INTEGER` `REFERENCES users(id)`
+- status of order `VARCHAR`
+
+#### Order_products table
+- order_id `INTEGER` `references orders(id)`
+- product_id `INTEGER` `references products(id)`
+- quantity `INTEGER`
 

@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import bookRoutes from "./handlers/bookHandler";
 import userRoutes from "./handlers/userHandler";
 import orderRoutes from "./handlers/orderHandler";
+import productRoutes from "./handlers/productHandler";
 
 const app: express.Application = express();
 const address: string = "0.0.0.0:3000";
@@ -14,9 +14,11 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 userRoutes(app);
-bookRoutes(app);
+productRoutes(app);
 orderRoutes(app);
 
 app.listen(3000, function () {
   console.log(`starting app on: ${address}`);
 });
+
+export default app;
