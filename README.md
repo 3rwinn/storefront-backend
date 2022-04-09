@@ -30,7 +30,7 @@ ENV=dev
 
 ## Test the app
 
--   add a `database.json` file in the root directory and set the missing `###` parameters
+-   update the `database.json` file in the root directory and set the missing `***` parameters
 ```
 {
   "dev": {
