@@ -11,23 +11,30 @@ const productRoutes = (app: express.Application) => {
 const store = new ProductStore();
 
 const index = async (_req: Request, res: Response) => {
-  const products = await store.index();
-  res.json({
-    success: true,
-    products: products,
-  });
+  try {
+    const products = await store.index();
+    res.json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    abort(res, 400, error as unknown as string);
+  }
 };
 
 const show = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
-  const product = await store.show(id);
-  if (product) {
-    res.json({
-      success: true,
-      product: product,
-    });
-  } else {
-    abort(res, 404, "Product not found");
+  try {
+    const product = await store.show(parseInt(req.params.id));
+    if (product) {
+      res.json({
+        success: true,
+        product,
+      });
+    } else {
+      abort(res, 404, "Product not found");
+    }
+  } catch (error) {
+    abort(res, 400, error as unknown as string);
   }
 };
 

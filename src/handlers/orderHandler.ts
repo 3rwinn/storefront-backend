@@ -17,23 +17,30 @@ const store = new OrderStore();
 const userStore = new UserStore();
 
 const index = async (_req: Request, res: Response) => {
-  const orders = await store.index();
-  res.json({
-    success: true,
-    orders,
-  });
+  try {
+    const orders = await store.index();
+    res.json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    abort(res, 400, error as unknown as string);
+  }
 };
 
 const show = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
-  const order = await store.show(id);
-  if (order) {
-    res.json({
-      success: true,
-      order,
-    });
-  } else {
-    abort(res, 404, "Order not found");
+  try {
+    const order = await store.show(parseInt(req.params.id));
+    if (order) {
+      res.json({
+        success: true,
+        order,
+      });
+    } else {
+      abort(res, 404, "Order not found");
+    }
+  } catch (error) {
+    abort(res, 400, error as unknown as string);
   }
 };
 
@@ -71,14 +78,20 @@ const update = async (req: Request, res: Response) => {
 };
 
 const destroy = async (req: Request, res: Response) => {
-  const deleted = await store.delete(parseInt(req.params.id));
-  if (deleted) {
-    res.json({
-      success: true,
-      deleted,
-    });
-  } else {
-    abort(res, 404, "Order not found");
+  try {
+    const id = parseInt(req.params.id);
+    const order = await store.show(id);
+    if (order) {
+      await store.delete(id);
+      res.json({
+        success: true,
+        order,
+      });
+    } else {
+      abort(res, 404, "Order not found");
+    }
+  } catch (error) {
+    abort(res, 400, error as unknown as string);
   }
 };
 
